@@ -1,149 +1,147 @@
 #include "main.h"
-/* malloc free */
 #include <stdlib.h>
 
+/**
+ * _print - moves a string one place to the left and prints the string
+ * @str: string to move
+ * @l: size of string
+ *
+ * Return: void
+ */
+void _print(char *str, int l)
+{
+	int i, j;
+
+	i = j = 0;
+	while (i < l)
+	{
+		if (str[i] != '0')
+			j = 1;
+		if (j || i == l - 1)
+			_putchar(str[i]);
+		i++;
+	}
+
+	_putchar('\n');
+	free(str);
+}
 
 /**
- * initDigitArray - allocates and sets to 0 an array to contain the digits
- *   of a base 10 number
+ * mul - multiplies a char with a string and places the answer into dest
+ * @n: char to multiply
+ * @num: string to multiply
+ * @num_index: last non NULL index of num
+ * @dest: destination of multiplication
+ * @dest_index: highest index to start addition
  *
- * @size: array size
- * Return: pointer to initialized array, or NULL on failure
+ * Return: pointer to dest, or NULL on failure
  */
-unsigned int *initDigitArray(size_t size)
+char *mul(char n, char *num, int num_index, char *dest, int dest_index)
 {
-	unsigned int *arr = NULL;
-	size_t i;
+	int j, k, mul, mulrem, add, addrem;
 
-	arr = malloc(sizeof(unsigned int) * size);
-	if (!arr)
+	mulrem = addrem = 0;
+	for (j = num_index, k = dest_index; j >= 0; j--, k--)
+	{
+		mul = (n - '0') * (num[j] - '0') + mulrem;
+		mulrem = mul / 10;
+		add = (dest[k] - '0') + (mul % 10) + addrem;
+		addrem = add / 10;
+		dest[k] = add % 10 + '0';
+	}
+	for (addrem += mulrem; k >= 0 && addrem; k--)
+	{
+		add = (dest[k] - '0') + addrem;
+		addrem = add / 10;
+		dest[k] = add % 10 + '0';
+	}
+	if (addrem)
+	{
 		return (NULL);
-
-	for (i = 0; i < size; i++)
-		arr[i] = 0;
-
-	return (arr);
+	}
+	return (dest);
 }
-
-
 /**
- * stringIntMultiply - TBD
+ * check_for_digits - checks the arguments to ensure they are digits
+ * @av: pointer to arguments
  *
- * @prod_digits: array to store digits of product
- * @n1_digits: string containing multiplicand digits in ASCII
- * @n2_digits: string containing multiplier digits in ASCII
- * @n1_len: amount of digits in multiplicand
- * @n2_len: amount of digits in multiplier
+ * Return: 0 if digits, 1 if not
  */
-void stringIntMultiply(unsigned int *prod_digits, char *n1_digits,
-		       char *n2_digits, size_t n1_len, size_t n2_len)
+int check_for_digits(char **av)
 {
-	int i, j, sum;
-	unsigned char digit1, digit2;
+	int i, j;
 
-	if (prod_digits == NULL || n1_digits == NULL || n2_digits == NULL)
-		return;
-
-	for (i = n1_len - 1; i >= 0; i--)
+	for (i = 1; i < 3; i++)
 	{
-		sum = 0;
-		digit1 = n1_digits[i] - '0';
-
-		for (j = n2_len - 1; j >= 0; j--)
+		for (j = 0; av[i][j]; j++)
 		{
-			digit2 = n2_digits[j] - '0';
-
-			sum += prod_digits[i + j + 1] + (digit1 * digit2);
-
-			prod_digits[i + j + 1] = sum % 10;
-
-			sum /= 10;
+			if (av[i][j] < '0' || av[i][j] > '9')
+				return (1);
 		}
-
-		if (sum > 0)
-			prod_digits[i + j + 1] += sum;
 	}
+	return (0);
 }
 
+/**
+ * init - initializes a string
+ * @str: sting to initialize
+ * @l: length of strinf
+ *
+ * Return: void
+ */
+void init(char *str, int l)
+{
+	int i;
+
+	for (i = 0; i < l; i++)
+		str[i] = '0';
+	str[i] = '\0';
+}
 
 /**
- * stringIsPosInt - validates if string represents a positive integer
+ * main - multiply two numbers
+ * @argc: number of arguments
+ * @argv: argument vector
  *
- * @s: string to test
- * Return: 1 if true, 0 if false
+ * Return: zero, or exit status of 98 if failure
  */
-int stringIsPosInt(char *s)
+int main(int argc, char *argv[])
 {
-	size_t i;
+	int l1, l2, ln, ti, i;
+	char *a;
+	char *t;
+	char e[] = "Error\n";
 
-	for (i = 0; s[i]; i++)
+	if (argc != 3 || check_for_digits(argv))
 	{
-		if (s[i] < '0' || s[i] > '9')
-			return (0);
+		for (ti = 0; e[ti]; ti++)
+			_putchar(e[ti]);
+		exit(98);
 	}
-
-	return (1);
-}
-
-
-/**
- * error - error return
- *
- * @status: error code to exit with
- */
-void error(int status)
-{
-	_putchar('E');
-	_putchar('r');
-	_putchar('r');
-	_putchar('o');
-	_putchar('r');
-	_putchar('\n');
-	exit(status);
-}
-
-
-/**
- * main - entry point
- *
- * @argc: number of commmand line arguments
- * @argv: array of commmand line arguments
- * Return: 0 on success, 98 on failure
- */
-int main(int argc, char **argv)
-{
-	size_t i, av1_len, av2_len, prod_len;
-	unsigned int *prod_digits = NULL;
-
-	if (argc != 3 || !stringIsPosInt(argv[1]) ||
-	    !stringIsPosInt(argv[2]))
-		error(98);
-
-	for (i = 0, av1_len = 0; argv[1][i]; i++)
-		av1_len++;
-
-	for (i = 0, av2_len = 0; argv[2][i]; i++)
-		av2_len++;
-
-	prod_len = av1_len + av2_len;
-	prod_digits = initDigitArray(prod_len);
-	if (prod_digits == NULL)
-		error(98);
-
-	stringIntMultiply(prod_digits, argv[1], argv[2], av1_len, av2_len);
-
-	/* omit leading zeroes */
-	for (i = 0; !prod_digits[i] && i < prod_len; i++)
-	{}
-
-	if (i == prod_len)
-		_putchar('0');
-
-	for (; i < prod_len; i++)
-		_putchar(prod_digits[i] + '0');
-	_putchar('\n');
-
-	free(prod_digits);
-
+	for (l1 = 0; argv[1][l1]; l1++)
+		;
+	for (l2 = 0; argv[2][l2]; l2++)
+		;
+	ln = l1 + l2 + 1;
+	a = malloc(ln * sizeof(char));
+	if (a == NULL)
+	{
+		for (ti = 0; e[ti]; ti++)
+			_putchar(e[ti]);
+		exit(98);
+	}
+	init(a, ln - 1);
+	for (ti = l2 - 1, i = 0; ti >= 0; ti--, i++)
+	{
+		t = mul(argv[2][ti], argv[1], l1 - 1, a, (ln - 2) - i);
+		if (t == NULL)
+		{
+			for (ti = 0; e[ti]; ti++)
+				_putchar(e[ti]);
+			free(a);
+			exit(98);
+		}
+	}
+	_print(a, ln - 1);
 	return (0);
 }
